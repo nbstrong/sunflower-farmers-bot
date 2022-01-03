@@ -1,9 +1,11 @@
 # Farming Bot for Sunflower Farmer
-This repository includes a potato🥔 farming bot. I don't provide any support.
+This repository includes a potato🥔 farming bot. **I don't provide any support.**
 
 ## How to Use
 
 ```shell
+git clone --recursive https://github.com/mikoim/sunflower-farmers-bot.git
+
 # install deps
 yarn
 
@@ -13,6 +15,7 @@ vim hardhat.config.ts
 # Step 1: Send MATIC and SFF to your farm wallet
 
 # Step 2: Create farm
+# The wallet must have 0.1 MATIC (for charity) and few SFF (for leveling)
 env WALLET=1 npx hardhat run scripts/createFarm.ts --network polygon
 
 # Step 3: Earn without playing 
