@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { FarmV2__factory, TokenV2__factory } from "../typechain-types";
 import moment from "moment";
 import { EventStruct } from "../typechain-types/FarmV2";
+import 'dotenv/config';
 
 function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -21,6 +22,7 @@ async function main() {
       5: 17
     };
     let desiredFarmLevel = process.env.DESIRED_FARM_LEVEL || 1;
+    let desiredFruit = process.env.DESIRED_FRUIT || 2;
     let desiredFarmLength = farmLenghts[desiredFarmLevel];
     if(typeof desiredFarmLength == 'undefined') throw `Error: Farm level '${desiredFarmLevel}' is unavailable. Fix on your .env file`;
 
@@ -68,7 +70,7 @@ async function main() {
             events.push({
                 action: 0,
                 createdAt: now,
-                fruit: 2,
+                fruit: desiredFruit,
                 landIndex: index,
             });
         } else if (slot.fruit != 2) {
@@ -81,7 +83,7 @@ async function main() {
             events.push({
                 action: 0,
                 createdAt: now,
-                fruit: 2,
+                fruit: desiredFruit,
                 landIndex: index,
             });
         }
