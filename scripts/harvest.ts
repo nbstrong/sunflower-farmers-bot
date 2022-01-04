@@ -4,6 +4,7 @@ import { FarmV2__factory, TokenV2__factory } from "../typechain-types";
 import moment from "moment";
 import { EventStruct } from "../typechain-types/FarmV2";
 import axios from "axios";
+import 'dotenv/config';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,6 +15,7 @@ async function main() {
   let signerIndex = parseInt(process.env.WALLET || "1") - 1;
   let signer = signers[signerIndex];
   let signerAddress = signer.address;
+  let desiredFruit = process.env.DESIRED_FRUIT || 2;
 
   while (true) {
     let farm_v2 = FarmV2__factory.connect(
@@ -62,13 +64,13 @@ async function main() {
         events.push({
           action: 1,
           createdAt: start + j * 300,
-          fruit: 2,
+          fruit: desiredFruit,
           landIndex: i,
         });
         events.push({
           action: 0,
           createdAt: start + j * 300,
-          fruit: 2,
+          fruit: desiredFruit,
           landIndex: i,
         });
       }
