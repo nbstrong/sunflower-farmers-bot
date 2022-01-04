@@ -13,6 +13,16 @@ async function main() {
     let signerIndex = parseInt(process.env.WALLET || "1") - 1;
     let signer = signers[signerIndex];
     let signerAddress = signer.address;
+    let farmLenghts:any = {
+      1: 5,
+      2: 8,
+      3: 11,
+      4: 14,
+      5: 17
+    };
+    let desiredFarmLevel = process.env.DESIRED_FARM_LEVEL || 1;
+    let desiredFarmLength = farmLenghts[desiredFarmLevel];
+    if(typeof desiredFarmLength == 'undefined') throw `Error: Farm level '${desiredFarmLevel}' is unavailable. Fix on your .env file`;
 
     let farm_v2 = FarmV2__factory.connect(
         "0x6e5fa679211d7f6b54e14e187d34ba547c5d3fe0",
@@ -36,13 +46,15 @@ async function main() {
         let createFarm = await farm_v2.createFarm("0x060697E9d4EEa886EbeCe57A974Facd53A40865B", {value: ethers.utils.parseEther("0.1")});
         console.log((await createFarm.wait()).transactionHash);
         farm = await farm_v2.getFarm(signerAddress);
+        console.log("Created farm!");
     }
 
-    if (farm.length == 5) {
-        console.log("Leveling up...")
+    while (farm.length < desiredFarmLength) {
+        console.log(`Leveling up... ${farm.length} < ${desiredFarmLength}`);
         let levelUp = await farm_v2.levelUp();
         console.log((await levelUp.wait()).transactionHash);
         farm = await farm_v2.getFarm(signerAddress);
+        console.log(`Farm Level up!`);
     }
 
     // refresh farm status
