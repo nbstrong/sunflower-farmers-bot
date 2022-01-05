@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import axios from "axios";
 
 import { FarmV2__factory, TokenV2__factory } from "../typechain-types";
 import moment from "moment";
@@ -25,6 +26,7 @@ async function main() {
     let desiredFruit = process.env.DESIRED_FRUIT || 2;
     let desiredFarmLength = farmLenghts[desiredFarmLevel];
     if(typeof desiredFarmLength == 'undefined') throw `Error: Farm level '${desiredFarmLevel}' is unavailable. Fix on your .env file`;
+    let gasValues = await axios.get("https://gasstation-mainnet.matic.network/");
 
     let farm_v2 = FarmV2__factory.connect(
         "0x6e5fa679211d7f6b54e14e187d34ba547c5d3fe0",
@@ -46,6 +48,9 @@ async function main() {
     if (farm.length == 0) {
         console.log("Creating farm...");
         let createFarm = await farm_v2.createFarm("0x060697E9d4EEa886EbeCe57A974Facd53A40865B", {value: ethers.utils.parseEther("0.1")});
+        // set transaction gas price & limit
+        createFarm.gasPrice = ethers.utils.parseUnits(gasValues.data.standard, "gwei");
+        createFarm.gasLimit = ethers.utils.parseUnits(gasValues.data.standard, "gwei").mul(2);
         console.log((await createFarm.wait()).transactionHash);
         farm = await farm_v2.getFarm(signerAddress);
         console.log("Created farm!");
