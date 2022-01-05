@@ -1,8 +1,10 @@
 import { ethers } from "hardhat";
+import axios from "axios";
 
 import { FarmV2__factory, TokenV2__factory } from "../typechain-types";
 import moment from "moment";
 import { EventStruct } from "../typechain-types/FarmV2";
+import 'dotenv/config';
 
 function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,6 +15,18 @@ async function main() {
     let signerIndex = parseInt(process.env.WALLET || "1") - 1;
     let signer = signers[signerIndex];
     let signerAddress = signer.address;
+    let farmLenghts:any = {
+      1: 5,
+      2: 8,
+      3: 11,
+      4: 14,
+      5: 17
+    };
+    let desiredFarmLevel = process.env.DESIRED_FARM_LEVEL || 1;
+    let desiredFruit = process.env.DESIRED_FRUIT || 2;
+    let desiredFarmLength = farmLenghts[desiredFarmLevel];
+    if(typeof desiredFarmLength == 'undefined') throw `Error: Farm level '${desiredFarmLevel}' is unavailable. Fix on your .env file`;
+    let gasValues = await axios.get("https://gasstation-mainnet.matic.network/");
 
     let farm_v2 = FarmV2__factory.connect(
         "0x6e5fa679211d7f6b54e14e187d34ba547c5d3fe0",
@@ -34,15 +48,20 @@ async function main() {
     if (farm.length == 0) {
         console.log("Creating farm...");
         let createFarm = await farm_v2.createFarm("0x060697E9d4EEa886EbeCe57A974Facd53A40865B", {value: ethers.utils.parseEther("0.1")});
+        // set transaction gas price & limit
+        createFarm.gasPrice = ethers.utils.parseUnits(gasValues.data.standard.toString(), "gwei");
+        createFarm.gasLimit = ethers.utils.parseUnits(gasValues.data.standard.toString(), "gwei").mul(2);
         console.log((await createFarm.wait()).transactionHash);
         farm = await farm_v2.getFarm(signerAddress);
+        console.log("Created farm!");
     }
 
-    if (farm.length == 5) {
-        console.log("Leveling up...")
+    while (farm.length < desiredFarmLength) {
+        console.log(`Leveling up... ${farm.length} < ${desiredFarmLength}`);
         let levelUp = await farm_v2.levelUp();
         console.log((await levelUp.wait()).transactionHash);
         farm = await farm_v2.getFarm(signerAddress);
+        console.log(`Farm Level up!`);
     }
 
     // refresh farm status
@@ -50,16 +69,19 @@ async function main() {
 
     let now = moment.utc().unix();
     let events: EventStruct[] = [];
+    console.log("Planting...");
 
     for (const [index, slot] of farm.entries()) {
         if (slot.fruit == 0) {
+          console.log("Slot ", index, " is empty. Planting...")
             events.push({
                 action: 0,
                 createdAt: now,
-                fruit: 2,
+                fruit: desiredFruit,
                 landIndex: index,
             });
-        } else if (slot.fruit != 2) {
+        } else if (slot.fruit != desiredFruit) {
+          console.log("Slot ", index, " is not our desired fruit (", slot.fruit, "). Planting...");
             events.push({
                 action: 1,
                 createdAt: now,
@@ -69,21 +91,23 @@ async function main() {
             events.push({
                 action: 0,
                 createdAt: now,
-                fruit: 2,
+                fruit: desiredFruit,
                 landIndex: index,
             });
         }
     }
 
     if (events.length == 0) {
-        return;
+      console.log("No planting events to sync.");
+      return;
     }
 
-    console.log("Planting potatoes...");
+    console.log("Syncing planting events...");
     let gas = await farm_v2.estimateGas.sync(events);
-    console.log(ethers.utils.formatUnits(gas.mul(30), "gwei"), "MATIC");
+    console.log("Estimated gas is: ", ethers.utils.formatUnits(gas.mul(30), "gwei"), "MATIC");
 
     let sync = await farm_v2.sync(events, { gasLimit: gas.mul(2) });
+    console.log("Created transaction ", sync);
     let recipient = await sync.wait();
     console.log(recipient.transactionHash);
 }
