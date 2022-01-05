@@ -69,16 +69,19 @@ async function main() {
 
     let now = moment.utc().unix();
     let events: EventStruct[] = [];
+    console.log("Planting...");
 
     for (const [index, slot] of farm.entries()) {
         if (slot.fruit == 0) {
+          console.log("Slot ", index, " is empty. Planting...")
             events.push({
                 action: 0,
                 createdAt: now,
                 fruit: desiredFruit,
                 landIndex: index,
             });
-        } else if (slot.fruit != 2) {
+        } else if (slot.fruit != desiredFruit) {
+          console.log("Slot ", index, " is not our desired fruit (", slot.fruit, "). Planting...");
             events.push({
                 action: 1,
                 createdAt: now,
@@ -95,14 +98,16 @@ async function main() {
     }
 
     if (events.length == 0) {
-        return;
+      console.log("No planting events to sync.");
+      return;
     }
 
-    console.log("Planting potatoes...");
+    console.log("Syncing planting events...");
     let gas = await farm_v2.estimateGas.sync(events);
-    console.log(ethers.utils.formatUnits(gas.mul(30), "gwei"), "MATIC");
+    console.log("Estimated gas is: ", ethers.utils.formatUnits(gas.mul(30), "gwei"), "MATIC");
 
     let sync = await farm_v2.sync(events, { gasLimit: gas.mul(2) });
+    console.log("Created transaction ", sync);
     let recipient = await sync.wait();
     console.log(recipient.transactionHash);
 }
