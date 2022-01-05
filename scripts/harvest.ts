@@ -5,6 +5,7 @@ import moment from "moment";
 import { EventStruct } from "../typechain-types/FarmV2";
 import axios from "axios";
 import 'dotenv/config';
+const { fruits } = require('./utils/fruits');
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,7 +16,9 @@ async function main() {
   let signerIndex = parseInt(process.env.WALLET || "1") - 1;
   let signer = signers[signerIndex];
   let signerAddress = signer.address;
+  let gasLimit = process.env.GAS_LIMIT || 500;
   let desiredFruit = process.env.DESIRED_FRUIT || 2;
+  console.log("Your desired fruit is: ",fruits[desiredFruit.toString()].name)
 
   while (true) {
     let farm_v2 = FarmV2__factory.connect(
@@ -39,42 +42,41 @@ async function main() {
     let farm = await farm_v2.getFarm(signerAddress);
     for (const [i, place] of farm.entries()) {
       console.log(
-        i,
-        place.fruit,
-        moment.unix(place.createdAt.toNumber()).format()
+        "Slot ", i,
+        "Has fruit: ", fruits[place.fruit].name,
+        "Which was planted at: ",moment.unix(place.createdAt.toNumber()).format()
       );
     }
 
-    let lastHarvest = Math.max(
-      ...farm.map((event) => event.createdAt.toNumber())
-    );
     let now = moment.utc().unix();
-    let diff = now - lastHarvest;
+    let lastHarvest = Math.max(
+      ...farm.map((event) => fruits[event.fruit].harvestTime - (now - event.createdAt.toNumber()))
+    );
 
-    if (diff < 30 * 60) {
-      console.log("Next farming: ", 30 * 60 - diff, "s later");
-      await delay(30 * 60 - diff + 30);
+    if (lastHarvest > 0) {
+      console.log("Next farming: ", lastHarvest, "s later");
+      await delay((lastHarvest) * 1000);
       continue;
     }
 
+    console.log("===== Planting =====");
     let start = now - 1500;
     let events: EventStruct[] = [];
-    for (let j = 0; j < 6; j++) {
       for (let i = 0; i < farm.length; i++) {
+        console.log("Planting ",fruits[desiredFruit].name, " at slot ", i);
         events.push({
           action: 1,
-          createdAt: start + j * 300,
+          createdAt: start * 300,
           fruit: desiredFruit,
           landIndex: i,
         });
         events.push({
           action: 0,
-          createdAt: start + j * 300,
+          createdAt: start * 300,
           fruit: desiredFruit,
           landIndex: i,
         });
       }
-    }
 
     console.log("===== Gas =====");
     interface GasStation {
@@ -95,19 +97,22 @@ async function main() {
       continue;
     }
 
-    if (gasStation.standard > 50) {
-      console.log("Gas price is too high!");
+    console.log("standard gas fee: ", gasStation.standard);
+
+    if (gasStation.standard > gasLimit) {
+      console.log("Gas price is too high! (", gasStation.standard, " and our limit is ", gasLimit, ") Trying again in 90 seconds");
       await delay(1000 * 90);
       continue;
     }
 
-    let gasPrice = ethers.utils.parseUnits(String(gasStation.safeLow), "gwei");
+    let gasPrice = ethers.utils.parseUnits(String(gasStation.standard), "gwei");
 
     try {
       let gas = await farm_v2.estimateGas.sync(events);
-      console.log(ethers.utils.formatEther(gas.mul(gasPrice)), "MATIC");
+      console.log("Estimated gas: ", ethers.utils.formatEther(gas.mul(gasPrice)), "MATIC");
 
       let sync = await farm_v2.sync(events, { gasLimit: gas.mul(2), gasPrice: gasPrice });
+      console.log("Created transaction: ", sync);
       let recipient = await sync.wait();
       console.log(recipient.transactionHash);
     } catch (e) {
