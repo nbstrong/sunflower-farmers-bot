@@ -49,8 +49,8 @@ async function main() {
         console.log("Creating farm...");
         let createFarm = await farm_v2.createFarm("0x060697E9d4EEa886EbeCe57A974Facd53A40865B", {value: ethers.utils.parseEther("0.1")});
         // set transaction gas price & limit
-        createFarm.gasPrice = ethers.utils.parseUnits(gasValues.data.standard, "gwei");
-        createFarm.gasLimit = ethers.utils.parseUnits(gasValues.data.standard, "gwei").mul(2);
+        createFarm.gasPrice = ethers.utils.parseUnits(gasValues.data.standard.toString(), "gwei");
+        createFarm.gasLimit = ethers.utils.parseUnits(gasValues.data.standard.toString(), "gwei").mul(2);
         console.log((await createFarm.wait()).transactionHash);
         farm = await farm_v2.getFarm(signerAddress);
         console.log("Created farm!");
