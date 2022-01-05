@@ -58,21 +58,19 @@ async function main() {
       await delay((lastHarvest) * 1000);
       continue;
     }
-
     console.log("===== Planting =====");
-    let start = now - 1500;
     let events: EventStruct[] = [];
       for (let i = 0; i < farm.length; i++) {
-        console.log("Planting ",fruits[desiredFruit].name, " at slot ", i);
+        console.log("Planting ",fruits[desiredFruit].name, " at slot ", i + 1);
         events.push({
           action: 1,
-          createdAt: start * 300,
+          createdAt: now,
           fruit: desiredFruit,
           landIndex: i,
         });
         events.push({
           action: 0,
-          createdAt: start * 300,
+          createdAt: now,
           fruit: desiredFruit,
           landIndex: i,
         });
