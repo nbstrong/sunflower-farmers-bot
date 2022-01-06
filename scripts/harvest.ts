@@ -64,6 +64,7 @@ async function main() {
     if (lastHarvest > 0) {
       console.log("Next farming: ", lastHarvest, "s later");
       harvestTimeArray.push(lastHarvest);
+      signerIndex++;
       continue;
     }
     console.log("===== Planting =====");
@@ -132,6 +133,7 @@ async function main() {
       ethers.utils.formatEther(await sff.balanceOf(signerAddress)),
       "SFF"
     );
+    signerIndex = signerIndex + 1;
   }
 }
 
