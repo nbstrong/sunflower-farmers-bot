@@ -6,10 +6,10 @@ This repository includes a farming bot.
 ```shell
 git clone --recursive https://github.com/rhiroshi/sunflower-farmers-bot.git
 
-# install deps
+# Install deps
 yarn
 
-# set your private keys
+# Set your private keys. The bot will iterate with all the keys in the array (on harvest.ts)
 vim hardhat.config.ts
 
 # Create and configure .env file. See .env-example file
@@ -21,7 +21,7 @@ vim hardhat.config.ts
 env WALLET=1 npx hardhat run scripts/createFarm.ts --network polygon
 
 # Step 3: Earn without playing
-env WALLET=1 npx hardhat run scripts/harvest.ts --network polygon
+npx hardhat run scripts/harvest.ts --network polygon
 ```
 
 ## Licenses

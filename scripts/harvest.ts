@@ -13,14 +13,22 @@ function delay(ms: number) {
 
 async function main() {
   let signers = await ethers.getSigners();
-  let signerIndex = parseInt(process.env.WALLET || "1") - 1;
-  let signer = signers[signerIndex];
-  let signerAddress = signer.address;
+  let signerIndex = 0;
   let gasLimit = process.env.GAS_LIMIT || 500;
   let desiredFruit = process.env.DESIRED_FRUIT || 2;
   console.log("Your desired fruit is: ",fruits[desiredFruit.toString()].name)
+  let harvestTimeArray:number[] = [];
 
   while (true) {
+    if(signerIndex == signers.length){
+      let closestHarvestTime = Math.min(...harvestTimeArray.map((n) => n));
+      console.log("Reached end of wallet array. waiting for the closest harvest time :", closestHarvestTime);
+      harvestTimeArray = [];
+      signerIndex = 0;
+      await delay(closestHarvestTime * 1000);
+    }
+    let signer = signers[signerIndex];
+    let signerAddress = signer.address;
     let farm_v2 = FarmV2__factory.connect(
       "0x6e5fa679211d7f6b54e14e187d34ba547c5d3fe0",
       signer
@@ -55,7 +63,8 @@ async function main() {
 
     if (lastHarvest > 0) {
       console.log("Next farming: ", lastHarvest, "s later");
-      await delay((lastHarvest) * 1000);
+      harvestTimeArray.push(lastHarvest);
+      signerIndex++;
       continue;
     }
     console.log("===== Planting =====");
@@ -113,6 +122,7 @@ async function main() {
       console.log("Created transaction: ", sync);
       let recipient = await sync.wait();
       console.log(recipient.transactionHash);
+      harvestTimeArray.push(fruits[desiredFruit].harvestTime);
     } catch (e) {
       console.log(e);
       await delay(1000 * 90);
@@ -123,6 +133,7 @@ async function main() {
       ethers.utils.formatEther(await sff.balanceOf(signerAddress)),
       "SFF"
     );
+    signerIndex = signerIndex + 1;
   }
 }
 
