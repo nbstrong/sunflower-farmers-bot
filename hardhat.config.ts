@@ -3,9 +3,14 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
 
+import { resolve } from "path";
+import { config as dotenvConfig } from "dotenv";
+
+dotenvConfig({ path: resolve(__dirname, "./.env") });
+
 let wallets = [
-  "PRIVATE KEY 1",
-  "PRIVATE KEY 2",
+  process.env.PRIVATE_KEY_1,
+  process.env.PRIVATE_KEY_2,
 ];
 
 export default {
