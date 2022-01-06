@@ -8,10 +8,7 @@ import { config as dotenvConfig } from "dotenv";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
-let wallets = [
-  process.env.PRIVATE_KEY_1,
-  process.env.PRIVATE_KEY_2,
-];
+let wallets = process.env.PRIVATE_KEY?.split(" ");
 
 export default {
   solidity: {
