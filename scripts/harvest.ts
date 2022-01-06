@@ -77,6 +77,16 @@ async function main() {
         });
       }
 
+    let decimals = ethers.BigNumber.from(10).pow(await sff.decimals());
+    let fruitPrice = decimals.mul(1000).div((1/fruits[desiredFruit].fruitPrice)*1000); // price * 10**decimals (but BigNum doesn't like decimal < 1)
+    let seedPrice = decimals.mul(1000).div((1/fruits[desiredFruit].seedPrice)*1000);
+    let marketFruitPrice = await farm_v2.getMarketPrice(fruitPrice);
+    let marketSeedPrice = await farm_v2.getMarketPrice(seedPrice);
+    let income = marketFruitPrice.mul(farm.length);
+    let expense = marketSeedPrice.mul(farm.length);
+    let profit = income.sub(expense);
+    console.log("Profit:", ethers.utils.formatEther(profit), "SFF");
+
     console.log("===== Gas =====");
     interface GasStation {
       safeLow: number,
