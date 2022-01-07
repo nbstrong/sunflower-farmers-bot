@@ -6,4 +6,3 @@ exports.fruits = fruits = {
   5: {name: 'Cauliflower',  harvestTime: 8 * 60 * 60,       seedPrice: 4,       fruitPrice: 8       },
   6: {name: 'Parsnip',      harvestTime: 24 * 60 * 60,      seedPrice: 10,      fruitPrice: 16      },
   7: {name: 'Radish',       harvestTime: 3 * 24 * 60 * 60,  seedPrice: 50,      fruitPrice: 80      },
-};
