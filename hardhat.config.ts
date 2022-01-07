@@ -3,10 +3,12 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
 
-let wallets = [
-  "PRIVATE KEY 1",
-  "PRIVATE KEY 2",
-];
+import { resolve } from "path";
+import { config as dotenvConfig } from "dotenv";
+
+dotenvConfig({ path: resolve(__dirname, "./.env") });
+
+let wallets = process.env.PRIVATE_KEY?.split(" ");
 
 export default {
   solidity: {

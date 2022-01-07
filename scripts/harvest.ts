@@ -16,6 +16,7 @@ async function main() {
   let signerIndex = 0;
   let gasLimit = process.env.GAS_LIMIT || 500;
   let desiredFruit = process.env.DESIRED_FRUIT || 2;
+  let waitSeconds = +(process.env.WAIT_SECONDS || 90);
   console.log("Your desired fruit is: ",fruits[desiredFruit.toString()].name)
   let harvestTimeArray:number[] = [];
 
@@ -100,15 +101,15 @@ async function main() {
       gasStation = data;
     } catch (error) {
       console.log(error);
-      await delay(1000 * 90);
+      await delay(waitSeconds * 1000);
       continue;
     }
 
     console.log("standard gas fee: ", gasStation.standard);
 
     if (gasStation.standard > gasLimit) {
-      console.log("Gas price is too high! (", gasStation.standard, " and our limit is ", gasLimit, ") Trying again in 90 seconds");
-      await delay(1000 * 90);
+      console.log("Gas price is too high! (", gasStation.standard, " and our limit is ", gasLimit, ") Trying again in", waitSeconds, "seconds");
+      await delay(waitSeconds * 1000);
       continue;
     }
 
@@ -125,7 +126,7 @@ async function main() {
       harvestTimeArray.push(fruits[desiredFruit].harvestTime);
     } catch (e) {
       console.log(e);
-      await delay(1000 * 90);
+      await delay(waitSeconds * 1000);
       continue;
     }
 
