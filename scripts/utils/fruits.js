@@ -1,4 +1,4 @@
-exports.fruits = fruits = {
+exports.fruits = {
   1: {name: 'Sunflower', harvestTime: 1 * 60},
   2: {name: 'Potato', harvestTime: 5 * 60},
   3: {name: 'Pumpkin', harvestTime: 60 * 60},
